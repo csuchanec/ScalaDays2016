@@ -45,7 +45,7 @@
 
 ## Scoping and Resolving
 * Lookup precdence
-  1. By name only, without any prefic
+  1. By name only, without any prefix
   2. In "implicit scope":
     * companion/package object of
       * the source tye

@@ -1,0 +1,148 @@
+# Domain Driven Design and Onion Architecture in Scala
+
+* Domain driven design often combined with (CQRS, Event SOurcing, Onion architecture) but it is not required
+
+
+
+* What is Domain Driven Design?
+  * Domain - a spher of knowlege
+  * Domain Driven Design - A technique for developing software that puts primary focus on the core domain
+  * Domains will likely change less than other things we could focus on
+  * Capturing truth of the domain model
+  * software is the capture of the domain model, not the model itself. It is a projection of that model
+  * Requires close communication between domain experts and techinical experts
+    * Need a common language to communicate with these experts
+* Ubiquitous Language
+  * Common language that is shared between the domain experts and technical experts
+  * Avoid vague terms like enty, process, action (unless they are part of the domain)
+  * Reflected in the software model
+  * By talking to the domain experts it can show problems in model from lack of understanding
+
+* Bounded Contexts
+  * The setting of context where ideas from the ubiquitous language apply
+  * Outside the bounded context, the words meaning may change or it may not apply
+  * Bounded contexts fit well with microservice architectures
+  * Within a process there probably are multiple bounded contexts and the meaning of the same thing in those contexts shouldn't be modeled in the same way as they don't actually mean the same thing
+
+
+* Domain Building Blocks
+  * Value Objects - domain object defined by it's attributes (if attributes are same then they are the same)
+  * Entity - A domain object defined by an identity (if id same regardless of attribute differences the entities are same )
+  * Aggregate - A collection of objects boun by a root entity
+  * Service - Contains operations that don't fit other domain objects
+  * Repository - Abstraction for retrieving instances of domain objects
+  * Factory - Abstraction for creating instances of domain objects
+
+* Onion Architecture
+  * Application is built around the domain
+  * Outer layers depend on and are coupled to inner layers
+  * Inner layers are decoupled from the outer layers
+  * Inner layers define interfaces that may be implemented in the outer layers
+  * Inner layers don't know that the outer layers exist
+
+  * Layers from in to out
+    * Core - building blocks (what you build your domain from, ex: Lists, Actors, etcs) - not specific to the application, don't know anything about the Domain
+    * Domain - Core business logic
+    * API (Services in other contexts)- The way you want the other parts of the application want to interact with the domain
+    * Infrasturcture - Services/Databases 
+
+  * Pushing services to the outer layers
+
+* API
+  * Defines the questions we want to ask about the domain (define the inputs and outputs)
+  * Insulates the domain from the infrastructure (as long as the API stays the same)
+  * Single conistent code interface
+  * Domain can be restructured /rewritten without affecting the infrastructure
+  * API is a good place for high level functional tests
+
+* Domain
+  * API and tests required us to implement out a minimal amount of the Domain
+  * The API may evolve whild driving this appart
+  * Use of Alegebraic Data types
+    * useful for building rich domains
+    * provie added type safety
+    * compiler checks rules of our domain
+    * Capture truth of the domain at compile time
+  * Tiny Types
+    * compile time checking of primitives
+    * encapsulates data validation
+    * Use `AnyVal` to avoid memory cost of wrapper classes
+    * Entriches the domain
+  * Aggregate Root
+    * Does it collect other things or are we going to other things more directly
+    * Aggregates other entities
+    * Controls access to those entities 
+    * Other entities are forbidden from accessing the child entities without first going through the Aggregate Root
+    * Is the aggregation natural or artificial 
+      * What if you delete the root item?
+      * Are the other items useful without the root?
+      * When doing actions are we interacting with the object or going somewhere else
+
+  * Evolving Truth
+    * We never know the truth of the domain until we have spent time with it
+    * Domain models aren't fixed and we need to be able to evolve it
+
+* Infrastructure
+  * Repositories and Factories
+    * Often implemented in the Infrascturcture
+    * Abstract over data storage
+  * Dependency Inversion Principle
+    * High level modules should not depend on low-level modules, both should depend on abstaction
+    * Onion Arcitecture 
+      * High level modules - inner layers
+      * Low level modules - outer layers
+
+* Thin cake pattern 
+* Use modules named based upon the piece of the architecture they mean to represent
+
+* Closing Remarks
+  * DDD is evolutionary - don't write it once and call it done
+  * Done well it can result in readable, maintainable, and portable
+  * Move away from the specific details of things like database and user interfaces
+  * If we removed the software from the equation what would it look like
+
+* Case Study - fry an egg
+  * Nouns
+    * Cook
+    * Egg, Sunny Side Up, Scrambled
+    * Stove, Frying Pan
+  * Verbs
+    * Fry, Prepare
+    * Crack
+
+  * Bounded Contexts
+    * Food Preparation
+    * Grocery Shopping
+    * Washing Dishes
+  * Domain Objects
+    * Cook, Cook Factory, Cook Repository
+    * Egg, Egg Style
+    * FryingPan
+  * The first crack (this is a bad path)
+    * `class FoodPrepApi { def fry(egg: Egg): FriedEgg = ???}`
+    * Doesn't say how to cook
+    * Does not mimic real world - you don't give Egg to someone to cook it
+    * API is syncronous - you don't wait for the egg to be done (no sense of time)
+  * The second crack
+    * `class FoodPrepApi { def prepareEgg(style: EggStyle): Future[CookedEgg] = ??? }`
+    * No longer handing the egg
+    * Captures notion of time
+    * passing style
+    * ecapsulates notion of failures 
+      * recoverable failures - egg was dropped -- just cook the egg again - don't see the failure
+      * unrecoverable failure - no eggs - something you'd need to see the failure
+  * Functional Testing
+    * Point of the test - you aren't mocking or stubbying anything, you are trying to use the real repositories as best as possible
+  * Idenifying our Cook with a tiny type, we can later enrich the class
+    * `case class CookId(value: String) extends AnyVal`
+  * Broken frying plan
+    * Not reflecting the domain well because they don't 
+    * Horrible tests because lots of edge cases
+    * Model in ways that make it impossible to do bad things rather than have the edge cases
+      * Can't add an egg to a FullFryingPan and now the type system says that
+
+
+Code available at github repro
+
+
+
