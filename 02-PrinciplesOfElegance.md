@@ -1,4 +1,4 @@
-#Pri nciples Of Elegance
+#Principles Of Elegance
 
 
 1. Public API's minimal
